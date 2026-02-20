@@ -1,0 +1,4 @@
+langgraph
+streamlit
+openai
+python-dotenv
