@@ -9,7 +9,10 @@ export default function TranscriptPanel({ transcripts, callActive, isListening }
     const bottomRef = useRef(null);
 
     useEffect(() => {
-        bottomRef.current?.scrollIntoView({ behavior: 'smooth' });
+        // Use auto behavior and a slight timeout to ensure rapid updates do not block the smooth scroll animation
+        setTimeout(() => {
+            bottomRef.current?.scrollIntoView({ behavior: 'auto', block: 'end' });
+        }, 50);
     }, [transcripts]);
 
     const getSpeakerClass = (speaker) => {

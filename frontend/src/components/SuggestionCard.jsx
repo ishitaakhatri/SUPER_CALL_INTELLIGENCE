@@ -1,5 +1,16 @@
+import { useRef, useEffect } from 'react';
+
 export default function SuggestionCard({ suggestion, isProcessing }) {
-    if (isProcessing) {
+    const bottomRef = useRef(null);
+
+    // Auto-scroll to the latest suggestion
+    useEffect(() => {
+        setTimeout(() => {
+            bottomRef.current?.scrollIntoView({ behavior: 'auto', block: 'end' });
+        }, 50);
+    }, [suggestion, isProcessing]);
+
+    if (isProcessing && !suggestion) {
         return (
             <div className="card suggestion">
                 <div className="card-header">
@@ -35,6 +46,12 @@ export default function SuggestionCard({ suggestion, isProcessing }) {
         );
     }
 
+    // Split multiple suggestions separated by double newlines into distinct bubbles
+    const suggestionsList = suggestion
+        .split('\n\n')
+        .map(s => s.trim())
+        .filter(s => s.length > 0);
+
     return (
         <div className="card suggestion">
             <div className="card-header">
@@ -46,7 +63,20 @@ export default function SuggestionCard({ suggestion, isProcessing }) {
             </div>
             <div className="card-body">
                 <div className="suggestion-text">
-                    <span className="highlight-script">{suggestion}</span>
+                    {suggestionsList.map((text, idx) => (
+                        <span key={idx} className="highlight-script">{text}</span>
+                    ))}
+                    {isProcessing && (
+                        <div className="processing-indicator" style={{ marginTop: '8px' }}>
+                            <div className="processing-dots">
+                                <span></span>
+                                <span></span>
+                                <span></span>
+                            </div>
+                            Generating more...
+                        </div>
+                    )}
+                    <div ref={bottomRef} />
                 </div>
             </div>
         </div>

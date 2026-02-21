@@ -134,10 +134,16 @@ export default function App() {
                 <PostCallCard evaluation={postCallEvaluation} />
             ) : (
                 <main className="cards-area">
-                    <MemberCard member={memberProfile} />
-                    <KnowledgeCard docs={knowledgeDocs} />
-                    <ComplianceCard alerts={complianceAlerts} />
                     <SuggestionCard suggestion={suggestion} isProcessing={isProcessing} />
+                    <div className="cards-grid-bottom">
+                        <div className="cards-col">
+                            <MemberCard member={memberProfile} />
+                            <ComplianceCard alerts={complianceAlerts} />
+                        </div>
+                        <div className="cards-col">
+                            <KnowledgeCard docs={knowledgeDocs} />
+                        </div>
+                    </div>
                 </main>
             )}
 

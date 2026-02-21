@@ -149,6 +149,7 @@ body {
   display: flex;
   flex-direction: column;
   overflow: hidden;
+  min-height: 0;
 }
 
 .panel-header {
@@ -222,13 +223,25 @@ body {
 /* ─── Cards Grid (Main Area) ─── */
 .cards-area {
   grid-row: 2;
-  padding: 20px;
+  padding: 20px 20px 40px 20px;
   overflow-y: auto;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.cards-grid-bottom {
   display: grid;
   grid-template-columns: 1fr 1fr;
-  grid-template-rows: auto auto;
+  align-items: start;
   gap: 16px;
-  align-content: start;
+}
+
+.cards-col {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
 }
 
 .cards-area::-webkit-scrollbar {
@@ -317,6 +330,24 @@ body {
 
 .card-body {
   padding: 16px 20px;
+  overflow-y: auto;
+}
+
+.card-body::-webkit-scrollbar {
+  width: 4px;
+}
+
+.card-body::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.card-body::-webkit-scrollbar-thumb {
+  background: rgba(255, 255, 255, 0.08);
+  border-radius: 2px;
+}
+
+.card-body::-webkit-scrollbar-thumb:hover {
+  background: rgba(255, 255, 255, 0.15);
 }
 
 /* ─── Member Profile Card ─── */
@@ -383,6 +414,10 @@ body {
 }
 
 /* ─── Knowledge Card ─── */
+.card.knowledge .card-body {
+  max-height: 480px;
+}
+
 .card.knowledge .card-icon {
   background: rgba(34, 211, 238, 0.12);
   color: var(--accent-cyan);
@@ -423,6 +458,10 @@ body {
 }
 
 /* ─── Compliance Card ─── */
+.card.compliance .card-body {
+  max-height: 220px;
+}
+
 .card.compliance .card-icon {
   background: rgba(248, 113, 113, 0.12);
   color: var(--accent-red);
@@ -488,13 +527,17 @@ body {
 }
 
 /* ─── Suggestion Card ─── */
+.card.suggestion .card-body {
+  max-height: 200px;
+}
+
 .card.suggestion .card-icon {
   background: rgba(52, 211, 153, 0.12);
   color: var(--accent-green);
 }
 
 .card.suggestion {
-  grid-column: 1 / -1;
+  width: 100%;
 }
 
 .card.suggestion:hover {
@@ -506,7 +549,9 @@ body {
   line-height: 1.7;
   color: var(--text-primary);
   padding: 4px 0;
-  white-space: pre-line;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
 }
 
 .suggestion-text .highlight-script {
@@ -515,7 +560,10 @@ body {
   border-radius: var(--radius-sm);
   border-left: 3px solid var(--accent-green);
   display: block;
-  margin-top: 8px;
+  word-wrap: break-word;
+  overflow-wrap: break-word;
+  white-space: pre-wrap;
+  animation: slideIn 0.3s ease-out;
 }
 
 /* ─── Input Bar (Bottom) ─── */
@@ -1218,4 +1266,43 @@ body {
 
 .btn-mic-header:hover {
   transform: scale(1.1);
+}
+
+/* ═══════════════════════════════════════════════════════
+   Responsive Layout Additions
+   ═══════════════════════════════════════════════════════ */
+
+@media (max-width: 1024px) {
+  .app {
+    grid-template-columns: 300px 1fr;
+  }
+
+  .cards-grid-bottom {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 768px) {
+  .app {
+    grid-template-columns: 1fr;
+    grid-template-rows: auto 40vh 1fr;
+    overflow-y: auto;
+  }
+
+  .transcript-panel {
+    grid-row: 2;
+    grid-column: 1 / -1;
+    border-right: none;
+    border-bottom: 1px solid var(--border-subtle);
+  }
+
+  .cards-area {
+    grid-row: 3;
+    grid-column: 1 / -1;
+    padding: 12px;
+  }
+
+  .cards-grid-bottom {
+    grid-template-columns: 1fr;
+  }
 }
