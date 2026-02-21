@@ -1,8 +1,9 @@
 # tools/llm.py — OpenAI LLM utilities for Insurance FNOL + Post-Call Evaluation
 
 import os
-import json
+from typing import Literal
 from openai import AsyncOpenAI
+from pydantic import BaseModel
 from dotenv import load_dotenv
 
 load_dotenv()
@@ -12,17 +13,59 @@ client = AsyncOpenAI(api_key=os.getenv("OPENAI_API_KEY"))
 MODEL = "gpt-4.1-mini"
 
 
+# ═══════════════════════════════════════════════════════
+# PYDANTIC SCHEMAS — used by OpenAI Structured Outputs
+# ═══════════════════════════════════════════════════════
+
+class IntentClassification(BaseModel):
+    intent: Literal[
+        "car_accident",
+        "car_theft",
+        "car_vandalism",
+        "life_death_claim",
+        "life_accidental_death",
+        "general_inquiry",
+    ]
+    claim_type: Literal["car_insurance", "life_insurance", "general"]
+
+
+class ScoreDetail(BaseModel):
+    score: int
+    feedback: str
+
+
+class EvaluationScores(BaseModel):
+    empathy_and_tone: ScoreDetail
+    information_gathering: ScoreDetail
+    compliance_adherence: ScoreDetail
+    process_knowledge: ScoreDetail
+    resolution_and_next_steps: ScoreDetail
+
+
+class PostCallEvaluation(BaseModel):
+    overall_score: int
+    call_summary: str
+    claim_type_detected: str
+    scores: EvaluationScores
+    strengths: list[str]
+    improvements: list[str]
+    compliance_violations: list[str]
+    coaching_notes: str
+
+
+# ═══════════════════════════════════════════════════════
+# INTENT CLASSIFICATION — Structured Output
+# ═══════════════════════════════════════════════════════
+
 async def classify_intent(transcript: str) -> dict:
     """Use LLM to classify the caller's intent into an FNOL category."""
 
     system_prompt = """You are an insurance call classification system.
-Analyze the caller's statement and return ONLY a JSON object with two keys:
-- "intent": one of ["car_accident", "car_theft", "car_vandalism", "life_death_claim", "life_accidental_death", "general_inquiry"]
-- "claim_type": one of ["car_insurance", "life_insurance", "general"]
+Analyze the caller's statement and classify it.
+- "intent": the most fitting FNOL category.
+- "claim_type": the broad insurance line the intent falls under."""
 
-Return ONLY the JSON object, no markdown, no explanation."""
-
-    response = await client.chat.completions.create(
+    response = await client.beta.chat.completions.parse(
         model=MODEL,
         messages=[
             {"role": "system", "content": system_prompt},
@@ -30,16 +73,15 @@ Return ONLY the JSON object, no markdown, no explanation."""
         ],
         temperature=0.0,
         max_tokens=100,
+        response_format=IntentClassification,
     )
 
-    text = response.choices[0].message.content.strip()
-    if text.startswith("```"):
-        text = text.split("\n", 1)[1].rsplit("```", 1)[0].strip()
-    try:
-        return json.loads(text)
-    except json.JSONDecodeError:
-        return {"intent": "general_inquiry", "claim_type": "general"}
+    return response.choices[0].message.parsed.model_dump()
 
+
+# ═══════════════════════════════════════════════════════
+# AGENT SUGGESTION — free-text (no structured output)
+# ═══════════════════════════════════════════════════════
 
 async def generate_agent_suggestion(
     transcript: str,
@@ -91,7 +133,7 @@ Generate the agent's suggested response:"""
 
 
 # ═══════════════════════════════════════════════════════
-# POST-CALL EVALUATION — Agent performance scorecard
+# POST-CALL EVALUATION — Structured Output
 # ═══════════════════════════════════════════════════════
 
 async def generate_post_call_evaluation(
@@ -114,39 +156,6 @@ async def generate_post_call_evaluation(
     system_prompt = """You are an insurance call center quality assurance analyst.
 Evaluate the agent's performance on an FNOL (First Notice of Loss) call.
 
-Return a JSON object with this EXACT structure:
-{
-  "overall_score": <number 1-100>,
-  "call_summary": "<2-3 sentence summary of what happened on the call>",
-  "claim_type_detected": "<the type of claim>",
-  "scores": {
-    "empathy_and_tone": {
-      "score": <1-10>,
-      "feedback": "<specific feedback>"
-    },
-    "information_gathering": {
-      "score": <1-10>,
-      "feedback": "<specific feedback>"
-    },
-    "compliance_adherence": {
-      "score": <1-10>,
-      "feedback": "<specific feedback>"
-    },
-    "process_knowledge": {
-      "score": <1-10>,
-      "feedback": "<specific feedback>"
-    },
-    "resolution_and_next_steps": {
-      "score": <1-10>,
-      "feedback": "<specific feedback>"
-    }
-  },
-  "strengths": ["<strength 1>", "<strength 2>"],
-  "improvements": ["<improvement 1>", "<improvement 2>"],
-  "compliance_violations": ["<violation or 'None detected'>"],
-  "coaching_notes": "<1-2 sentences of coaching advice>"
-}
-
 Scoring criteria:
 - Empathy: Did the agent show appropriate concern? Warm opening?
 - Information Gathering: Did they collect all required FNOL details (date, location, parties, damage, police report)?
@@ -154,7 +163,7 @@ Scoring criteria:
 - Process Knowledge: Did agent know the correct procedures and requirements?
 - Resolution: Clear next steps, timeline, follow-up expectations?
 
-Return ONLY the JSON, no markdown fences."""
+Scores use a 1-10 scale per category and 1-100 overall."""
 
     user_prompt = f"""Call Transcript:
 {formatted_transcript}
@@ -165,7 +174,7 @@ Policyholder Identified: {member_data.get('name') if member_data else 'Not ident
 
 Evaluate this agent's performance:"""
 
-    response = await client.chat.completions.create(
+    response = await client.beta.chat.completions.parse(
         model=MODEL,
         messages=[
             {"role": "system", "content": system_prompt},
@@ -173,24 +182,10 @@ Evaluate this agent's performance:"""
         ],
         temperature=0.3,
         max_tokens=800,
+        response_format=PostCallEvaluation,
     )
 
-    text = response.choices[0].message.content.strip()
-    if text.startswith("```"):
-        text = text.split("\n", 1)[1].rsplit("```", 1)[0].strip()
-
-    try:
-        evaluation = json.loads(text)
-    except json.JSONDecodeError:
-        evaluation = {
-            "overall_score": 0,
-            "call_summary": "Failed to generate evaluation",
-            "scores": {},
-            "strengths": [],
-            "improvements": [],
-            "compliance_violations": [],
-            "coaching_notes": "Error in evaluation generation",
-        }
+    evaluation = response.choices[0].message.parsed.model_dump()
 
     # Add metadata
     evaluation["call_duration_seconds"] = int(call_duration)
