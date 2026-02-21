@@ -4,4 +4,8 @@ __pycache__/
 *.pyc
 *.log
 frontend/node_modules/
+<<<<<<< Updated upstream
 frontend/dist/
+=======
+frontend/dist/
+>>>>>>> Stashed changes
