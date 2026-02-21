@@ -1,10 +1,11 @@
 import { useRef, useEffect } from 'react';
 
 /**
- * Live transcript panel with speaker labels and timestamps.
- * Matches the architecture screenshot: [Customer 00:00:12]: "text"
+ * Live transcript panel with speaker diarization.
+ * Agent = Guest-1 (cyan), Customer = Guest-2 (amber).
+ * Shows [Agent 00:00:12]: "text" format with live pulse when listening.
  */
-export default function TranscriptPanel({ transcripts }) {
+export default function TranscriptPanel({ transcripts, callActive, isListening }) {
     const bottomRef = useRef(null);
 
     useEffect(() => {
@@ -24,13 +25,18 @@ export default function TranscriptPanel({ transcripts }) {
             <div className="panel-header">
                 <span className="icon">🎙️</span>
                 Live Transcript Stream
+                {isListening && <span className="live-badge">● LIVE</span>}
             </div>
             <div className="transcript-messages">
                 {transcripts.length === 0 && (
                     <div className="empty-state">
-                        <div className="empty-icon">💬</div>
-                        <h3>No Transcript Yet</h3>
-                        <p>Start a call or type a message to begin</p>
+                        <div className="empty-icon">🎧</div>
+                        <h3>{callActive ? 'Listening...' : 'No Active Call'}</h3>
+                        <p>
+                            {callActive
+                                ? 'Speak into the microphone. The agent should speak first.'
+                                : 'Click "Start Call" to begin listening. Azure Speech will automatically distinguish between Agent and Customer.'}
+                        </p>
                     </div>
                 )}
                 {transcripts.map((t) => (

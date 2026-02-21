@@ -1,4 +1,4 @@
-import { useState, useCallback, useRef } from 'react';
+import { useState, useCallback } from 'react';
 import { useWebSocket } from './hooks/useWebSocket.js';
 import { useAzureSpeech } from './hooks/useSpeechRecognition.js';
 import TranscriptPanel from './components/TranscriptPanel.jsx';
@@ -14,12 +14,8 @@ const WS_URL = import.meta.env.DEV
     : `ws://${window.location.host}/stream`;
 
 export default function App() {
-    const [inputText, setInputText] = useState('');
     const [callActive, setCallActive] = useState(false);
     const [showEvaluation, setShowEvaluation] = useState(false);
-
-    // Speaker toggle for typed demo messages
-    const [demoSpeaker, setDemoSpeaker] = useState('Customer');
 
     const {
         isConnected,
@@ -36,7 +32,7 @@ export default function App() {
         resetState,
     } = useWebSocket(WS_URL);
 
-    // Azure Speech callback
+    // Azure Speech callback — sends each utterance to the backend
     const onAzureTranscript = useCallback(
         (event) => {
             sendMessage(event.text, event.isFinal, event.speaker, event.offset);
@@ -44,7 +40,7 @@ export default function App() {
         [sendMessage]
     );
 
-    // Azure Speech — token is fetched from backend, no keys in frontend
+    // Azure Speech hook — token fetched from backend
     const { isListening, error: speechError, toggleListening } = useAzureSpeech({
         onTranscript: onAzureTranscript,
     });
@@ -54,11 +50,13 @@ export default function App() {
         resetState();
         setCallActive(true);
         setShowEvaluation(false);
+        // Auto-start listening
+        setTimeout(() => toggleListening(), 300);
     };
 
     const handleEndCall = () => {
         if (isListening) toggleListening(); // Stop mic
-        endCall(); // Request post-call evaluation from backend
+        endCall(); // Request post-call evaluation
         setCallActive(false);
         setShowEvaluation(true);
     };
@@ -69,33 +67,18 @@ export default function App() {
         setShowEvaluation(false);
     };
 
-    // ─── Text Input (Demo Mode) ─── //
-    const handleSend = () => {
-        const text = inputText.trim();
-        if (!text) return;
-        sendMessage(text, true, demoSpeaker, 0);
-        setInputText('');
-    };
-
-    const handleKeyDown = (e) => {
-        if (e.key === 'Enter' && !e.shiftKey) {
-            e.preventDefault();
-            handleSend();
-        }
-    };
-
     // Connection status
-    const statusText = isProcessing
-        ? 'Processing...'
-        : isListening
-            ? 'Listening...'
+    const statusText = isListening
+        ? '🔴 Live — Listening'
+        : isProcessing
+            ? 'Processing...'
             : isConnected
-                ? 'Connected'
+                ? 'Ready'
                 : 'Disconnected';
 
-    const statusClass = isProcessing
+    const statusClass = isListening
         ? 'processing'
-        : isListening
+        : isProcessing
             ? 'processing'
             : isConnected
                 ? ''
@@ -122,9 +105,18 @@ export default function App() {
                         </button>
                     )}
                     {callActive && (
-                        <button className="btn-call end" onClick={handleEndCall}>
-                            ⏹ End Call
-                        </button>
+                        <>
+                            <button
+                                className={`btn-mic-header ${isListening ? 'active' : ''}`}
+                                onClick={toggleListening}
+                                title={isListening ? 'Mute' : 'Unmute'}
+                            >
+                                {isListening ? '🎙️' : '🔇'}
+                            </button>
+                            <button className="btn-call end" onClick={handleEndCall}>
+                                ⏹ End Call
+                            </button>
+                        </>
                     )}
                     {showEvaluation && (
                         <button className="btn-call new" onClick={handleNewCall}>
@@ -135,7 +127,7 @@ export default function App() {
             </header>
 
             {/* ─── Left: Transcript Panel ─── */}
-            <TranscriptPanel transcripts={transcripts} />
+            <TranscriptPanel transcripts={transcripts} callActive={callActive} isListening={isListening} />
 
             {/* ─── Right: Cards Grid or Post-Call Evaluation ─── */}
             {showEvaluation && postCallEvaluation ? (
@@ -148,44 +140,6 @@ export default function App() {
                     <SuggestionCard suggestion={suggestion} isProcessing={isProcessing} />
                 </main>
             )}
-
-            {/* ─── Input Bar ─── */}
-            <div className="input-bar">
-                {/* Mic button (Azure Speech) */}
-                <button
-                    className={`btn-mic ${isListening ? 'active' : ''}`}
-                    onClick={toggleListening}
-                    disabled={!callActive}
-                    title={isListening ? 'Stop listening' : 'Start voice input (Azure Speech)'}
-                >
-                    {isListening ? '⏹' : '🎙️'}
-                </button>
-
-                {/* Speaker toggle for demo */}
-                <button
-                    className={`btn-speaker ${demoSpeaker.toLowerCase()}`}
-                    onClick={() => setDemoSpeaker(demoSpeaker === 'Customer' ? 'Agent' : 'Customer')}
-                    title={`Speaking as: ${demoSpeaker}`}
-                >
-                    {demoSpeaker === 'Customer' ? '👤' : '🧑‍💼'}
-                </button>
-
-                <input
-                    type="text"
-                    placeholder={`Type as ${demoSpeaker}... e.g. "My policy is CAR-100001, I had an accident"`}
-                    value={inputText}
-                    onChange={(e) => setInputText(e.target.value)}
-                    onKeyDown={handleKeyDown}
-                    disabled={!isConnected || (!callActive && !showEvaluation)}
-                />
-                <button
-                    className="btn-send"
-                    onClick={handleSend}
-                    disabled={!isConnected || !inputText.trim() || !callActive}
-                >
-                    Send ⏎
-                </button>
-            </div>
 
             {/* Speech error toast */}
             {speechError && (
