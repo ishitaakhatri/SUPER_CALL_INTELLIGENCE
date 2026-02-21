@@ -71,7 +71,9 @@ export function useWebSocket(url) {
                             id: Date.now(),
                         }];
                     }
-                    return [...prev, {
+                    // Filter out existing partials for the SAME offset so we don't spam the UI
+                    const filteredPartial = prev.filter((t) => t.is_finalized || t.offset !== data.offset);
+                    return [...filteredPartial, {
                         text: data.text,
                         is_finalized: false,
                         speaker: data.speaker || '',

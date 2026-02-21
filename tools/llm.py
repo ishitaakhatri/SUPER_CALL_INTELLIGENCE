@@ -29,6 +29,12 @@ class IntentClassification(BaseModel):
     claim_type: Literal["car_insurance", "life_insurance", "general"]
 
 
+class EntityExtraction(BaseModel):
+    policy_id: str | None
+    name: str | None
+    phone: str | None
+
+
 class ScoreDetail(BaseModel):
     score: int
     feedback: str
@@ -80,6 +86,34 @@ Analyze the caller's statement and classify it.
 
 
 # ═══════════════════════════════════════════════════════
+# ENTITY EXTRACTION — Structured Output
+# ═══════════════════════════════════════════════════════
+
+async def extract_entities(transcript: str) -> dict:
+    """Use LLM to extract names, phone numbers, and policy IDs from transcript."""
+    
+    system_prompt = """You are an insurance entity extraction system.
+Analyze the caller's statement and extract the following if present:
+- "policy_id": formatted as CAR-XXXXXX or LIFE-XXXXXX (fix spacing/hyphens if spoken like "car 12345").
+- "name": full or partial name of the caller.
+- "phone": phone number referenced.
+Return null for fields not found."""
+
+    response = await client.beta.chat.completions.parse(
+        model=MODEL,
+        messages=[
+            {"role": "system", "content": system_prompt},
+            {"role": "user", "content": transcript},
+        ],
+        temperature=0.0,
+        max_tokens=150,
+        response_format=EntityExtraction,
+    )
+
+    return response.choices[0].message.parsed.model_dump()
+
+
+# ═══════════════════════════════════════════════════════
 # AGENT SUGGESTION — free-text (no structured output)
 # ═══════════════════════════════════════════════════════
 
@@ -96,12 +130,13 @@ async def generate_agent_suggestion(
 Generate a professional, empathetic, and compliance-aware suggested response for the agent to say to the caller.
 
 Rules:
+- NEVER address the customer directly. You are writing a script/talking points FOR the agent to read.
 - Be warm and empathetic, especially for life insurance death claims.
 - Include specific next steps based on the knowledge articles provided.
 - Reference compliance requirements naturally (don't read compliance codes).
-- If member data is available, use their name.
-- Keep the response concise (3-5 sentences max).
-- Format as a direct script the agent can read aloud."""
+- If member data is available, use their name in the script.
+- Keep the response concise (2-4 sentences max).
+- Start immediately with the script (e.g., "Hi [Name], I'm so sorry...")."""
 
     user_prompt = f"""Caller's Statement:
 {transcript}

@@ -35,18 +35,26 @@ def get_compliance_alerts(intent: str, transcript: str) -> list[dict]:
     """
     Match compliance rules based on the detected intent and transcript keywords.
     Rules with trigger '_always' are included for every call.
+    Filters rules cleanly so Life rules don't fire on Car calls, etc.
     """
     transcript_lower = transcript.lower()
+    intent_category = intent.lower() if intent else ""
     matched: list[dict] = []
 
     for rule in COMPLIANCE_RULES:
+        rule_category = rule.get("category", "")
+        # Enforce strict category checks. Only process if 'general' or matches the active intent type.
+        if rule_category != "general" and not (rule_category in intent_category or intent_category in rule_category):
+            continue
+
         # Always-on rules
         if "_always" in rule["triggers"]:
             matched.append(rule)
             continue
+            
         # Check if any trigger keyword appears in the transcript or intent
         for trigger in rule["triggers"]:
-            if trigger in transcript_lower or trigger in intent.lower():
+            if trigger in transcript_lower or trigger in intent_category:
                 matched.append(rule)
                 break
 

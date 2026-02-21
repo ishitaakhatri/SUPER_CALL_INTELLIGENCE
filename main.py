@@ -52,7 +52,7 @@ app.add_middleware(
 )
 
 # ─── Regex patterns for the FAST PATH ─── #
-POLICY_REGEX = re.compile(r"\b(CAR-\d{4,}|LIFE-\d{4,})\b", re.IGNORECASE)
+POLICY_REGEX = re.compile(r"\b(CAR|LIFE)[-\s]?(\d{4,})\b", re.IGNORECASE)
 
 
 # ─── Health check ─── #
@@ -180,8 +180,9 @@ async def stream_endpoint(websocket: WebSocket):
             # ═══════════════════════════════════════════
             policy_match = POLICY_REGEX.search(text)
             if policy_match:
-                policy_id = policy_match.group().upper()
-                member = get_member(policy_id)
+                # Reconstruct standardized ID (e.g. CAR-12345) regardless of spaces
+                policy_id = f"{policy_match.group(1).upper()}-{policy_match.group(2)}"
+                member = get_member(policy_id=policy_id)
                 if member:
                     detected_member = member
                     await websocket.send_json({

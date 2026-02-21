@@ -3,7 +3,7 @@
 import re
 from data.members import get_member
 from data.knowledge import search_knowledge, get_compliance_alerts
-from tools.llm import classify_intent, generate_agent_suggestion
+from tools.llm import classify_intent, generate_agent_suggestion, extract_entities
 
 
 # ─────────────── INTENT NODE ─────────────── #
@@ -24,37 +24,32 @@ async def intent_node(state: dict) -> dict:
 
 async def entity_node(state: dict) -> dict:
     """
-    Extract policy IDs from the transcript using regex.
-    Supports CAR-XXXXXX and LIFE-XXXXXX formats.
+    Extract policy IDs, names, and phones from the transcript using LLM.
     """
     text = state["transcript"]
-    entities: dict = {}
+    entities = await extract_entities(text)
 
-    # Look for car policy IDs
-    car_match = re.search(r"CAR-\d{4,}", text, re.IGNORECASE)
-    if car_match:
-        entities["policyId"] = car_match.group().upper()
+    # Clean up empty entities to keep state clean
+    cleaned_entities = {k: v for k, v in entities.items() if v is not None}
 
-    # Look for life policy IDs
-    life_match = re.search(r"LIFE-\d{4,}", text, re.IGNORECASE)
-    if life_match:
-        entities["policyId"] = life_match.group().upper()
-
-    return {"entities": entities}
+    return {"entities": cleaned_entities}
 
 
 # ─────────────── MEMBER NODE ─────────────── #
 
 async def member_node(state: dict) -> dict:
     """
-    Fetch policyholder details from mock CRM using the extracted policy ID.
+    Fetch policyholder details from mock CRM using extracted entities.
     """
     entities = state.get("entities") or {}
     member = None
 
-    policy_id = entities.get("policyId")
-    if policy_id:
-        member = get_member(policy_id)
+    if entities:
+        member = get_member(
+            policy_id=entities.get("policy_id"),
+            name=entities.get("name"),
+            phone=entities.get("phone")
+        )
 
     return {"member_data": member}
 
@@ -73,10 +68,10 @@ async def knowledge_node(state: dict) -> dict:
 
 async def compliance_node(state: dict) -> dict:
     """
-    Match compliance rules based on the detected intent and transcript.
+    Match compliance rules based on the detected claim type and transcript.
     """
-    intent = state.get("intent") or ""
-    alerts = get_compliance_alerts(intent, state["transcript"])
+    claim_type = state.get("claim_type") or state.get("intent") or ""
+    alerts = get_compliance_alerts(claim_type, state["transcript"])
     return {"compliance_alerts": alerts}
 
 
