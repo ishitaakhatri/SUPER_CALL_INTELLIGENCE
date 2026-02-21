@@ -1,95 +1,97 @@
-# graph/nodes.py
+# graph/nodes.py — LangGraph node functions for Insurance FNOL
 
 import re
 from data.members import get_member
-from data.knowledge import search_knowledge
-from tools.llm import generate_agent_suggestion
+from data.knowledge import search_knowledge, get_compliance_alerts
+from tools.llm import classify_intent, generate_agent_suggestion
 
 
-# ---------------- INTENT NODE ---------------- #
+# ─────────────── INTENT NODE ─────────────── #
 
-async def intent_node(state):
+async def intent_node(state: dict) -> dict:
     """
-    Detect high-level customer intent.
-    Only returns the key it updates.
+    Classify the caller's intent using the LLM.
+    Returns intent and claim_type.
     """
-    text = state["transcript"].lower()
-
-    if "withdraw" in text:
-        intent = "hardship_withdrawal"
-    elif "complaint" in text:
-        intent = "complaint"
-    else:
-        intent = "general_query"
-
+    result = await classify_intent(state["transcript"])
     return {
-        "intent": intent
+        "intent": result.get("intent", "general_inquiry"),
+        "claim_type": result.get("claim_type", "general"),
     }
 
 
-# ---------------- ENTITY NODE ---------------- #
+# ─────────────── ENTITY NODE ─────────────── #
 
-async def entity_node(state):
+async def entity_node(state: dict) -> dict:
     """
-    Extract entities like Member ID.
-    Only returns the key it updates.
+    Extract policy IDs from the transcript using regex.
+    Supports CAR-XXXXXX and LIFE-XXXXXX formats.
     """
     text = state["transcript"]
+    entities: dict = {}
 
-    match = re.search(r"SUP-\d+", text)
-    entities = {"memberId": match.group()} if match else {}
+    # Look for car policy IDs
+    car_match = re.search(r"CAR-\d{4,}", text, re.IGNORECASE)
+    if car_match:
+        entities["policyId"] = car_match.group().upper()
 
-    return {
-        "entities": entities
-    }
+    # Look for life policy IDs
+    life_match = re.search(r"LIFE-\d{4,}", text, re.IGNORECASE)
+    if life_match:
+        entities["policyId"] = life_match.group().upper()
+
+    return {"entities": entities}
 
 
-# ---------------- MEMBER NODE ---------------- #
+# ─────────────── MEMBER NODE ─────────────── #
 
-async def member_node(state):
+async def member_node(state: dict) -> dict:
     """
-    Fetch member details from mock DB.
-    Only returns the key it updates.
+    Fetch policyholder details from mock CRM using the extracted policy ID.
     """
-    entities = state.get("entities", {})
+    entities = state.get("entities") or {}
     member = None
 
-    if "memberId" in entities:
-        member = get_member(entities["memberId"])
+    policy_id = entities.get("policyId")
+    if policy_id:
+        member = get_member(policy_id)
 
-    return {
-        "member_data": member
-    }
+    return {"member_data": member}
 
 
-# ---------------- KNOWLEDGE NODE ---------------- #
+# ─────────────── KNOWLEDGE NODE ─────────────── #
 
-async def knowledge_node(state):
+async def knowledge_node(state: dict) -> dict:
     """
-    Retrieve relevant knowledge documents.
-    Only returns the key it updates.
+    Retrieve relevant knowledge articles based on the transcript.
     """
     docs = search_knowledge(state["transcript"])
-
-    return {
-        "knowledge_docs": docs
-    }
+    return {"knowledge_docs": docs}
 
 
-# ---------------- SUGGESTION NODE ---------------- #
+# ─────────────── COMPLIANCE NODE ─────────────── #
 
-async def suggestion_node(state):
+async def compliance_node(state: dict) -> dict:
     """
-    Generate final suggested response using LLM.
-    Only returns the key it updates.
+    Match compliance rules based on the detected intent and transcript.
     """
+    intent = state.get("intent") or ""
+    alerts = get_compliance_alerts(intent, state["transcript"])
+    return {"compliance_alerts": alerts}
 
+
+# ─────────────── SUGGESTION NODE ─────────────── #
+
+async def suggestion_node(state: dict) -> dict:
+    """
+    Generate a suggested response for the agent using the LLM.
+    Combines all gathered context into a coherent recommendation.
+    """
     suggestion = await generate_agent_suggestion(
         transcript=state["transcript"],
+        intent=state.get("intent"),
         member_data=state.get("member_data"),
         knowledge_docs=state.get("knowledge_docs"),
+        compliance_alerts=state.get("compliance_alerts"),
     )
-
-    return {
-        "suggestion": suggestion
-    }
+    return {"suggestion": suggestion}

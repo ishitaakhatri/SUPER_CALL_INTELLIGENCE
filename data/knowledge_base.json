@@ -1,0 +1,72 @@
+[
+  {
+    "docId": "KB-CAR-001",
+    "title": "Car Accident FNOL – First Steps",
+    "category": "car_insurance",
+    "tags": ["accident", "collision", "car", "crash", "damage", "hit"],
+    "content": "When a policyholder reports a car accident:\n1. Confirm all parties are safe and if emergency services were contacted.\n2. Collect the date, time, and exact location of the accident.\n3. Ask if a police report was filed and obtain the report number.\n4. Document the other driver's information: name, insurance company, policy number, license plate.\n5. Ask the policyholder to describe the damage to their vehicle.\n6. Determine if the vehicle is drivable or if towing is required.\n7. Inform the policyholder that a claims adjuster will contact them within 24-48 hours.\n8. Remind them NOT to admit fault at the scene or to any third party.\n9. If injuries are reported, advise them to seek medical attention immediately and keep all records."
+  },
+  {
+    "docId": "KB-CAR-002",
+    "title": "Car Theft FNOL – Reporting Procedures",
+    "category": "car_insurance",
+    "tags": ["theft", "stolen", "car", "vehicle", "missing"],
+    "content": "When a policyholder reports a stolen vehicle:\n1. Confirm that a police report has been filed. If not, instruct them to file one immediately.\n2. Obtain the police report number and the precinct/station.\n3. Collect the last known location and time the vehicle was last seen.\n4. Ask if the vehicle had any tracking devices (GPS, LoJack, etc.).\n5. Note the vehicle details: make, model, year, color, VIN, license plate.\n6. Ask if all keys are accounted for.\n7. Inform the policyholder that theft claims typically require a 30-day waiting period before settlement.\n8. Advise them to contact their lender/leasing company if applicable.\n9. A Special Investigations Unit (SIU) review may be initiated for all theft claims over $25,000."
+  },
+  {
+    "docId": "KB-CAR-003",
+    "title": "Towing & Rental Car Coverage",
+    "category": "car_insurance",
+    "tags": ["towing", "rental", "car", "coverage", "roadside"],
+    "content": "Towing and rental car coverage details:\n- Towing: Covered up to $150 per incident for Comprehensive and Collision policies.\n- Rental Car: Available if the policyholder has the 'Rental Reimbursement' endorsement.\n  - Daily limit: $40/day, maximum 30 days.\n  - Rental coverage begins the day after the claim is filed.\n- Roadside Assistance: Available 24/7 at 1-800-555-ROAD.\n- If the vehicle is not drivable, authorize towing to the nearest approved repair facility.\n- Provide the policyholder with the list of preferred body shops in their area."
+  },
+  {
+    "docId": "KB-CAR-004",
+    "title": "Car Vandalism Claims",
+    "category": "car_insurance",
+    "tags": ["vandalism", "damage", "broken", "keyed", "window", "graffiti"],
+    "content": "When a policyholder reports vehicle vandalism:\n1. Confirm a police report has been filed.\n2. Document the type of vandalism: keyed paint, broken windows, slashed tires, graffiti, etc.\n3. Vandalism claims fall under Comprehensive coverage – verify the policyholder has this coverage.\n4. The deductible for Comprehensive claims applies (typically $500 or $1,000).\n5. Ask for photographs of the damage.\n6. Schedule an adjuster visit or direct to an approved repair facility.\n7. Advise the policyholder that filing a vandalism claim generally does NOT increase premiums."
+  },
+  {
+    "docId": "KB-CAR-005",
+    "title": "Car Insurance – Required Documentation Checklist",
+    "category": "car_insurance",
+    "tags": ["documents", "documentation", "required", "checklist", "car"],
+    "content": "Required documents for car insurance FNOL claims:\n□ Police report (required for theft, vandalism, and hit-and-run)\n□ Photos of damage (minimum 4 angles)\n□ Other driver's insurance information (for accidents)\n□ Medical records (if injuries are claimed)\n□ Repair estimates from approved facilities\n□ Towing receipts (for reimbursement)\n□ Rental car receipts (if applicable)\n□ Witness statements and contact information\n□ Dashcam footage (if available)"
+  },
+  {
+    "docId": "KB-LIFE-001",
+    "title": "Life Insurance Death Claim – Filing Procedures",
+    "category": "life_insurance",
+    "tags": ["death", "claim", "life", "deceased", "passed", "died", "passing"],
+    "content": "When a beneficiary files a death claim:\n1. Express condolences sincerely and professionally.\n2. Verify the caller's identity – ask for full name and relationship to the deceased.\n3. Confirm the policy number and the name of the insured.\n4. Ask for the date, location, and cause of death.\n5. Inform the beneficiary about required documents:\n   - Certified death certificate (original or certified copy)\n   - Completed claim form (will be mailed or emailed)\n   - Photo ID of the beneficiary\n6. Explain the payout process: typically 30-60 days after all documents are received.\n7. Payout options: lump sum, installments, or annuity.\n8. If the death occurred within the 2-year contestability period, advise that additional review may be required."
+  },
+  {
+    "docId": "KB-LIFE-002",
+    "title": "Life Insurance – Accidental Death Benefits",
+    "category": "life_insurance",
+    "tags": ["accidental", "accident", "death", "AD&D", "life"],
+    "content": "Accidental Death & Dismemberment (AD&D) coverage:\n- AD&D pays an additional benefit (typically equal to the base policy amount) if death results from a covered accident.\n- Covered accidents include: motor vehicle accidents, falls, drowning, and other sudden events.\n- NOT covered: death due to illness, suicide, drug overdose, or participation in illegal activities.\n- The beneficiary must provide:\n  - Police report or accident report\n  - Autopsy report (if performed)\n  - Medical examiner's findings\n- AD&D claims are reviewed by the Special Claims Unit and may take 60-90 days."
+  },
+  {
+    "docId": "KB-LIFE-003",
+    "title": "Life Insurance – Beneficiary Verification",
+    "category": "life_insurance",
+    "tags": ["beneficiary", "verify", "identity", "life", "claim"],
+    "content": "Beneficiary verification process:\n1. Verify the beneficiary's full legal name matches the policy records.\n2. Confirm date of birth, SSN (last 4 digits), and current address.\n3. If the beneficiary is a minor, a legal guardian or trustee must file the claim.\n4. If there are multiple beneficiaries, each must file separately.\n5. If the named beneficiary is deceased, the contingent beneficiary is contacted.\n6. If no beneficiary is named, the payout goes to the insured's estate.\n7. In case of disputed beneficiaries, the claim is placed on hold and Legal is notified.\n8. All beneficiary information is HIPAA-protected and must not be disclosed to unauthorized parties."
+  },
+  {
+    "docId": "KB-LIFE-004",
+    "title": "Life Insurance – Required Documentation Checklist",
+    "category": "life_insurance",
+    "tags": ["documents", "documentation", "required", "checklist", "life"],
+    "content": "Required documents for life insurance death claims:\n□ Certified death certificate (original or certified copy)\n□ Completed beneficiary claim form\n□ Government-issued photo ID of the claimant\n□ Proof of relationship (if not named beneficiary)\n□ Policy document (if available)\n□ Medical records / autopsy report (for AD&D or contestability review)\n□ Police report (for accidental death)\n□ Power of Attorney documents (if filing on behalf of another)\n□ Court order (for contested claims)"
+  },
+  {
+    "docId": "KB-GEN-001",
+    "title": "Fraud Indicators – Red Flags",
+    "category": "general",
+    "tags": ["fraud", "suspicious", "red flag", "investigation"],
+    "content": "Common fraud red flags to watch for during FNOL calls:\n- Claim filed immediately after policy inception or coverage increase.\n- Caller is overly knowledgeable about the claims process.\n- Inconsistent or rehearsed-sounding description of events.\n- Loss occurred in a remote area with no witnesses.\n- Caller is pressuring for a quick settlement.\n- Vehicle was recently listed for sale (theft claims).\n- Policy was recently changed to add comprehensive coverage (theft/vandalism).\n- Multiple prior claims in a short period.\n- If any red flags are detected, note them in the claim and flag for SIU review. Do NOT accuse the caller."
+  }
+]
