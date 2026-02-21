@@ -263,6 +263,7 @@ async def stream_endpoint(websocket: WebSocket):
                     "is_finalized": is_finalized,
                     "speaker": speaker_label,
                     "timestamp": _format_timestamp(offset),
+                    "offset": offset,
                 },
             })
 

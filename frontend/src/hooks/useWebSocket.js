@@ -60,13 +60,14 @@ export function useWebSocket(url) {
             case 'transcript':
                 setTranscripts((prev) => {
                     if (data.is_finalized) {
-                        // Remove matching partials, add finalized with speaker + timestamp
-                        const filtered = prev.filter((t) => t.is_finalized || t.text !== data.text);
+                        // Remove matching partials by offset (not text!) to avoid duplicates
+                        const filtered = prev.filter((t) => t.is_finalized || t.offset !== data.offset);
                         return [...filtered, {
                             text: data.text,
                             is_finalized: true,
                             speaker: data.speaker || '',
                             timestamp: data.timestamp || '',
+                            offset: data.offset,
                             id: Date.now(),
                         }];
                     }
@@ -75,6 +76,7 @@ export function useWebSocket(url) {
                         is_finalized: false,
                         speaker: data.speaker || '',
                         timestamp: data.timestamp || '',
+                        offset: data.offset,
                         id: Date.now(),
                     }];
                 });
