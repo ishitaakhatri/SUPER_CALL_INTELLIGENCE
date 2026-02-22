@@ -88,7 +88,13 @@ export default function App() {
         <div className="app">
             {/* ─── Header ─── */}
             <header className="app-header">
-                <h1>⚡ Super Call Intelligence — FNOL Dashboard</h1>
+                <div className="header-brand">
+                    <img src="/logo.png" alt="Extremum Analytics Logo" className="app-logo" />
+                    <h1>
+                        <span className="brand-title">Super Call Intelligence</span>
+                        <span className="brand-subtitle">Dashboard</span>
+                    </h1>
+                </div>
                 <div className="header-status">
                     {intent && (
                         <span className={`intent-badge ${intent.intent}`}>
