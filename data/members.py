@@ -154,8 +154,8 @@ import re
 
 def get_member(policy_id: str = None, name: str = None, phone: str = None):
     """
-    Look up a policyholder by their policy ID, Name, or Phone Number.
-    Performs case-insensitive matching on names and strips formatting on phones.
+    Look up a policyholder by their policy ID or Phone Number.
+    Strips formatting on phones for matching. Name is kept in signature for compatibility but ignored for searching.
     """
     # 1. Direct ID match
     if policy_id:
@@ -163,18 +163,12 @@ def get_member(policy_id: str = None, name: str = None, phone: str = None):
         if policy_id in MEMBER_DB:
             return MEMBER_DB[policy_id]
             
-    # Normalize input name and phone
-    search_name = name.lower().strip() if name else None
+    # Normalize input phone
     search_phone = re.sub(r'\D', '', phone) if phone else None
 
-    # 2. Iterate through all members to find a fuzzy match for name or phone
-    for pid, data in MEMBER_DB.items():
-        # Check Name
-        if search_name and search_name in data["name"].lower():
-            return data
-            
-        # Check Phone
-        if search_phone:
+    # 2. Iterate through all members to find a match for phone
+    if search_phone:
+        for pid, data in MEMBER_DB.items():
             db_phone = re.sub(r'\D', '', data.get("phone", ""))
             if search_phone in db_phone:
                 return data
