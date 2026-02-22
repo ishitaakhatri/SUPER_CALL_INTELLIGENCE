@@ -193,7 +193,7 @@ Rules:
 - Reference compliance requirements naturally (don't read compliance codes).
 - If member data is available, use their name in the script.
 - If the customer provided a policy number but Policyholder Data is "Not yet identified", instruct the agent to inform the customer that the policy couldn't be found and ask them to verify or repeat the number.
-- CRITICAL: Keep responses extremely short and conversational like a real human. 1-2 sentences MAX.
+- CRITICAL: Keep responses short and conversational like a real human. 1-2 sentences MAX.
 - CRITICAL: NEVER ask more than ONE question at a time. Do not overwhelm the caller. Wait for their response to one question before asking the next.
 - Start immediately with the script (e.g., "Hi [Name], I'm so sorry...")."""
 
