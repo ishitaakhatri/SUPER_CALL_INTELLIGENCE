@@ -1,15 +1,4 @@
-import { useRef, useEffect } from 'react';
-
 export default function SuggestionCard({ suggestion, isProcessing }) {
-    const bottomRef = useRef(null);
-
-    // Auto-scroll to the latest suggestion
-    useEffect(() => {
-        setTimeout(() => {
-            bottomRef.current?.scrollIntoView({ behavior: 'auto', block: 'end' });
-        }, 50);
-    }, [suggestion, isProcessing]);
-
     if (isProcessing && !suggestion) {
         return (
             <div className="card suggestion">
@@ -21,13 +10,10 @@ export default function SuggestionCard({ suggestion, isProcessing }) {
                     </div>
                 </div>
                 <div className="card-body">
-                    <div className="processing-indicator">
-                        <div className="processing-dots">
-                            <span></span>
-                            <span></span>
-                            <span></span>
-                        </div>
-                        Analyzing transcript and generating response...
+                    <div className="suggestion-shimmer">
+                        <div className="shimmer-line" />
+                        <div className="shimmer-line" />
+                        <div className="shimmer-line" />
                     </div>
                 </div>
             </div>
@@ -67,16 +53,11 @@ export default function SuggestionCard({ suggestion, isProcessing }) {
                         <span key={idx} className="highlight-script">{text}</span>
                     ))}
                     {isProcessing && (
-                        <div className="processing-indicator" style={{ marginTop: '8px' }}>
-                            <div className="processing-dots">
-                                <span></span>
-                                <span></span>
-                                <span></span>
-                            </div>
-                            Generating more...
+                        <div className="suggestion-shimmer" style={{ marginTop: '4px' }}>
+                            <div className="shimmer-line" />
+                            <div className="shimmer-line" />
                         </div>
                     )}
-                    <div ref={bottomRef} />
                 </div>
             </div>
         </div>

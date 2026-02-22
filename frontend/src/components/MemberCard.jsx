@@ -1,11 +1,13 @@
 export default function MemberCard({ member }) {
     if (!member) {
         return (
-            <div className="card member empty">
-                <div className="empty-state">
-                    <div className="empty-icon">👤</div>
-                    <h3>Policyholder Profile</h3>
-                    <p>Mention a policy ID to load (e.g., CAR-100001)</p>
+            <div className="card member compact-empty">
+                <div className="card-header">
+                    <div className="card-icon">👤</div>
+                    <div>
+                        <div className="card-title">Policyholder Profile</div>
+                        <div className="card-subtitle">Waiting for policy ID...</div>
+                    </div>
                 </div>
             </div>
         );

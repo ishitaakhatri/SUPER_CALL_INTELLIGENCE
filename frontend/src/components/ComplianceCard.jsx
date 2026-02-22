@@ -1,11 +1,13 @@
 export default function ComplianceCard({ alerts }) {
     if (!alerts || alerts.length === 0) {
         return (
-            <div className="card compliance empty">
-                <div className="empty-state">
-                    <div className="empty-icon">⚖️</div>
-                    <h3>Compliance Alerts</h3>
-                    <p>Regulatory warnings will appear here</p>
+            <div className="card compliance compact-empty">
+                <div className="card-header">
+                    <div className="card-icon">⚖️</div>
+                    <div>
+                        <div className="card-title">Compliance Alerts</div>
+                        <div className="card-subtitle">No active alerts</div>
+                    </div>
                 </div>
             </div>
         );

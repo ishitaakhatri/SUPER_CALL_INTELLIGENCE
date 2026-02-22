@@ -31,8 +31,66 @@ export function useAzureSpeech({ onTranscript }) {
             const speechConfig = SpeechSDK.SpeechConfig.fromAuthorizationToken(token, region);
             speechConfig.speechRecognitionLanguage = 'en-US';
 
-            const audioConfig = SpeechSDK.AudioConfig.fromDefaultMicrophoneInput();
-            const transcriber = new SpeechSDK.ConversationTranscriber(speechConfig, audioConfig);
+            // Capture system audio via screen share
+            let displayStream;
+            let micStream;
+            let audioContext;
+            let transcriber;
+
+            try {
+                displayStream = await navigator.mediaDevices.getDisplayMedia({
+                    video: true,
+                    audio: {
+                        echoCancellation: false,
+                        noiseSuppression: false,
+                        autoGainControl: false
+                    }
+                });
+
+                if (displayStream.getAudioTracks().length === 0) {
+                    displayStream.getTracks().forEach((track) => track.stop());
+                    throw new Error("Firefox doesn't support sharing system audio from the 'Entire Screen' option natively. Please use Chrome/Edge for this demo, or use a Virtual Audio Cable in Firefox.");
+                }
+
+                // Capture user's microphone
+                micStream = await navigator.mediaDevices.getUserMedia({
+                    audio: true,
+                    video: false
+                });
+
+                // Mix the two audio streams using Web Audio API
+                audioContext = new (window.AudioContext || window.webkitAudioContext)();
+                const displaySource = audioContext.createMediaStreamSource(displayStream);
+                const micSource = audioContext.createMediaStreamSource(micStream);
+                const destination = audioContext.createMediaStreamDestination();
+
+                displaySource.connect(destination);
+                micSource.connect(destination);
+
+                // Use the mixed stream for transcription
+                const mixedStream = destination.stream;
+
+                const audioConfig = SpeechSDK.AudioConfig.fromStreamInput(mixedStream);
+                transcriber = new SpeechSDK.ConversationTranscriber(speechConfig, audioConfig);
+
+            } catch (err) {
+                if (displayStream) displayStream.getTracks().forEach((track) => track.stop());
+                if (micStream) micStream.getTracks().forEach((track) => track.stop());
+                if (audioContext && audioContext.state !== 'closed') audioContext.close();
+
+                if (err.name === 'NotAllowedError') {
+                    throw new Error("Screen sharing or microphone was denied. " + err.message);
+                }
+                throw err;
+            }
+
+            // Store everything in the ref so we can clean up later
+            transcriberRef.current = {
+                transcriber,
+                displayStream,
+                micStream,
+                audioContext
+            };
 
             // ─── Interim results (partial) ─── //
             transcriber.transcribing = (s, e) => {
@@ -72,34 +130,48 @@ export function useAzureSpeech({ onTranscript }) {
                 setIsListening(false);
             };
 
-            transcriber.startTranscribingAsync(
-                () => {
-                    setIsListening(true);
-                    console.log('🎙️ Azure Speech: transcription started with diarization');
-                },
-                (err) => {
-                    console.error('Failed to start Azure Speech:', err);
-                    setError(String(err));
-                }
-            );
+            await new Promise((resolve, reject) => {
+                transcriber.startTranscribingAsync(
+                    () => {
+                        setIsListening(true);
+                        console.log('🎙️ Azure Speech: transcription started with system audio share');
+                        resolve();
+                    },
+                    (err) => {
+                        console.error('Failed to start Azure Speech:', err);
+                        setError(String(err));
+                        reject(err);
+                    }
+                );
+            });
 
-            transcriberRef.current = transcriber;
+            // Remove the redundant transcriberRef assignment
         } catch (err) {
             console.error('Azure Speech init error:', err);
-            setError(err.message);
+            setError(err.message || String(err));
         }
     }, [onTranscript]);
 
     const stopListening = useCallback(() => {
         if (transcriberRef.current) {
-            transcriberRef.current.stopTranscribingAsync(
-                () => {
-                    console.log('🎙️ Azure Speech: transcription stopped');
-                    transcriberRef.current?.close();
-                    transcriberRef.current = null;
-                },
-                (err) => console.error('Error stopping transcription:', err)
-            );
+            const { transcriber, displayStream, micStream, audioContext } = transcriberRef.current;
+
+            if (transcriber) {
+                transcriber.stopTranscribingAsync(
+                    () => {
+                        console.log('🎙️ Azure Speech: transcription stopped');
+                        transcriber.close();
+                    },
+                    (err) => console.error('Error stopping transcription:', err)
+                );
+            }
+
+            // Clean up custom streams and audio context
+            if (displayStream) displayStream.getTracks().forEach(track => track.stop());
+            if (micStream) micStream.getTracks().forEach(track => track.stop());
+            if (audioContext && audioContext.state !== 'closed') audioContext.close();
+
+            transcriberRef.current = null;
         }
         setIsListening(false);
     }, []);
