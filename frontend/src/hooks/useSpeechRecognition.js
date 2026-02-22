@@ -32,8 +32,8 @@ export function useAzureSpeech({ onTranscript }) {
             speechConfig.speechRecognitionLanguage = 'en-US';
 
             // Reduce silence timeout to 1000ms for faster token finalization while preserving speaker diarization
-            speechConfig.setProperty(SpeechSDK.PropertyId.SpeechServiceConnection_EndSilenceTimeoutMs, "1000");
-            speechConfig.setProperty(SpeechSDK.PropertyId.Speech_SegmentationSilenceTimeoutMs, "1000");
+            speechConfig.setProperty(SpeechSDK.PropertyId.SpeechServiceConnection_EndSilenceTimeoutMs, "700");
+            speechConfig.setProperty(SpeechSDK.PropertyId.Speech_SegmentationSilenceTimeoutMs, "700");
 
             // Capture system audio via screen share
             let displayStream;
