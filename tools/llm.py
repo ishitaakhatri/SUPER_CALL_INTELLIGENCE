@@ -151,7 +151,7 @@ Rules:
 - Reference compliance requirements naturally (don't read out compliance codes).
 - CRITICAL: Keep responses extremely short and conversational like a real human. 1-2 sentences MAX.
 - CRITICAL: NEVER ask more than ONE question at a time.
-- Start immediately with the script (e.g., "Hi [Name], I'm so sorry...")."""
+"""
 
     user_prompt = f"""Recent Caller's Statement:
 {transcript}
