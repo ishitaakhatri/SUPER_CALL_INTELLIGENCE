@@ -1,19 +1,39 @@
-# Stage 1: Build the React frontend
-FROM node:18 AS frontend-build
+# ==========================================
+# STAGE 1: Build the React (Vite) Frontend
+# ==========================================
+FROM node:20-alpine AS frontend-builder
 WORKDIR /app/frontend
+
+# Install dependencies first (optimizes Docker caching)
 COPY frontend/package*.json ./
-RUN npm install
+RUN npm ci
+
+# Copy the rest of the frontend code and build it
 COPY frontend/ .
 RUN npm run build
 
-# Stage 2: Build the FastAPI backend
+# ==========================================
+# STAGE 2: Build the FastAPI Backend
+# ==========================================
 FROM python:3.11-slim
 WORKDIR /app
+
+# Prevent Python from writing .pyc files and buffer stdout
+ENV PYTHONDONTWRITEBYTECODE=1
+ENV PYTHONUNBUFFERED=1
+
+# Install backend dependencies
 COPY requirements.txt .
 RUN pip install --no-cache-dir -r requirements.txt
-COPY . .
-# Copy built frontend assets to where main.py expects them
-COPY --from=frontend-build /app/frontend/dist ./frontend/dist
 
+# Copy all backend code (main.py, tools, graph, data, etc.)
+COPY . .
+
+# Copy the compiled frontend assets from Stage 1 into the directory main.py expects
+COPY --from=frontend-builder /app/frontend/dist /app/frontend/dist
+
+# Expose the port that Uvicorn runs on
 EXPOSE 8000
+
+# Start the FastAPI application
 CMD ["uvicorn", "main:app", "--host", "0.0.0.0", "--port", "8000"]
