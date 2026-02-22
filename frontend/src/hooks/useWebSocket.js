@@ -101,6 +101,16 @@ export function useWebSocket(url) {
                 setIsProcessing(false);
                 break;
 
+            case 'suggestion_chunk':
+                // Append chunk to existing suggestion
+                setSuggestion((prev) => prev + data.text);
+                setIsProcessing(false);
+                break;
+
+            case 'clear_suggestion':
+                setSuggestion('');
+                break;
+
             case 'intent':
                 setIntent(data);
                 setIsProcessing(false);
@@ -108,6 +118,8 @@ export function useWebSocket(url) {
 
             case 'processing':
                 setIsProcessing(true);
+                // We no longer clear the suggestion here. We only clear it if we want to explicitly reset.
+                // Otherwise, rapid speech will cause the UI to flash empty.
                 break;
 
             case 'post_call_evaluation':

@@ -14,7 +14,7 @@ from dotenv import load_dotenv
 
 from data.members import get_member
 from graph.graph import build_graph
-from tools.llm import generate_post_call_evaluation
+from tools.llm import generate_post_call_evaluation, generate_agent_suggestion_stream
 
 load_dotenv()
 
@@ -175,6 +175,18 @@ async def stream_endpoint(websocket: WebSocket):
                     "offset": offset,
                 })
 
+            # Always echo the transcript back for display immediately
+            await websocket.send_json({
+                "type": "transcript",
+                "data": {
+                    "text": text,
+                    "is_finalized": is_finalized,
+                    "speaker": speaker_label,
+                    "timestamp": _format_timestamp(offset),
+                    "offset": offset,
+                },
+            })
+
             # ═══════════════════════════════════════════
             # ⚡ FAST PATH — Regex policy ID extraction
             # ═══════════════════════════════════════════
@@ -254,26 +266,30 @@ async def stream_endpoint(websocket: WebSocket):
                         "data": result["compliance_alerts"],
                     })
 
-                # Send suggested response
-                if result.get("suggestion"):
+                # Clear the previous suggestion on the frontend just before starting the new stream
+                await websocket.send_json({
+                    "type": "clear_suggestion",
+                    "data": {},
+                })
+
+                # Send suggested response as a stream
+                suggestion_stream = generate_agent_suggestion_stream(
+                    transcript=text,
+                    full_transcript=formatted_transcript,
+                    intent=result.get("intent"),
+                    member_data=result.get("member_data"),
+                    knowledge_docs=result.get("knowledge_docs"),
+                    compliance_alerts=result.get("compliance_alerts"),
+                )
+                
+                async for chunk in suggestion_stream:
                     await websocket.send_json({
-                        "type": "suggestion",
-                        "data": {"text": result["suggestion"]},
+                        "type": "suggestion_chunk",
+                        "data": {"text": chunk},
                     })
 
                 logger.info("🧠 Slow path: all cards sent")
 
-            # Always echo the transcript back for display
-            await websocket.send_json({
-                "type": "transcript",
-                "data": {
-                    "text": text,
-                    "is_finalized": is_finalized,
-                    "speaker": speaker_label,
-                    "timestamp": _format_timestamp(offset),
-                    "offset": offset,
-                },
-            })
 
     except WebSocketDisconnect:
         logger.info("📞 WebSocket disconnected")

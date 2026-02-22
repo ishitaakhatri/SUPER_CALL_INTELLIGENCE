@@ -1,6 +1,6 @@
 # graph/graph.py — LangGraph state machine for FNOL processing
 
-from langgraph.graph import StateGraph
+from langgraph.graph import StateGraph, START, END
 from graph.state import AgentState
 from graph.nodes import (
     intent_node,
@@ -8,7 +8,6 @@ from graph.nodes import (
     member_node,
     knowledge_node,
     compliance_node,
-    suggestion_node,
 )
 
 
@@ -16,11 +15,10 @@ def build_graph():
     """
     Build the LangGraph processing pipeline.
 
-    Flow:
-        intent ──┬──> entity ──> member ──┐
-                 ├──> knowledge ──────────┤
-                 └──> compliance ─────────┘
-                                          └──> suggestion
+    Flow (Parallel):
+        START ──┬──> intent ──────> compliance ──> END
+                ├──> entity ──────> member ──────> END
+                └──> knowledge ──────────────────> END
     """
     builder = StateGraph(AgentState)
 
@@ -30,25 +28,19 @@ def build_graph():
     builder.add_node("knowledge", knowledge_node)
     builder.add_node("compliance", compliance_node)
     builder.add_node("member", member_node)
-    builder.add_node("suggestion", suggestion_node)
 
-    # Entry point
-    builder.set_entry_point("intent")
+    # Branch out concurrently from START
+    builder.add_edge(START, "intent")
+    builder.add_edge(START, "entity")
+    builder.add_edge(START, "knowledge")
 
-    # After intent → fan out to three parallel branches
-    builder.add_edge("intent", "entity")
-    builder.add_edge("intent", "knowledge")
+    # Sequential dependencies
     builder.add_edge("intent", "compliance")
-
-    # Entity → member lookup
     builder.add_edge("entity", "member")
 
-    # All branches merge into suggestion
-    builder.add_edge("member", "suggestion")
-    builder.add_edge("knowledge", "suggestion")
-    builder.add_edge("compliance", "suggestion")
-
-    # Finish
-    builder.set_finish_point("suggestion")
+    # All branches must hit END
+    builder.add_edge("compliance", END)
+    builder.add_edge("member", END)
+    builder.add_edge("knowledge", END)
 
     return builder.compile()

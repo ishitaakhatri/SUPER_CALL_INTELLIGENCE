@@ -173,6 +173,64 @@ Generate the agent's suggested response:"""
     return response.choices[0].message.content
 
 
+async def generate_agent_suggestion_stream(
+    transcript: str,
+    full_transcript: str,
+    intent: str | None,
+    member_data: dict | None,
+    knowledge_docs: list[dict] | None,
+    compliance_alerts: list[dict] | None,
+):
+    """Generate a contextual suggested response for the call center agent, streaming chunks."""
+
+    system_prompt = """You are an AI assistant for insurance call center agents handling First Notice of Loss (FNOL) claims.
+Generate a professional, empathetic, and compliance-aware suggested response for the agent to say to the caller.
+
+Rules:
+- NEVER address the customer directly. You are writing a script/talking points FOR the agent to read.
+- Be warm and empathetic, especially for life insurance death claims.
+- Include specific next steps based on the knowledge articles provided.
+- Reference compliance requirements naturally (don't read compliance codes).
+- If member data is available, use their name in the script.
+- If the customer provided a policy number but Policyholder Data is "Not yet identified", instruct the agent to inform the customer that the policy couldn't be found and ask them to verify or repeat the number.
+- CRITICAL: Keep responses extremely short and conversational like a real human. 1-2 sentences MAX.
+- CRITICAL: NEVER ask more than ONE question at a time. Do not overwhelm the caller. Wait for their response to one question before asking the next.
+- Start immediately with the script (e.g., "Hi [Name], I'm so sorry...")."""
+
+    user_prompt = f"""Recent Caller's Statement:
+{transcript}
+
+Full Conversation Context:
+{full_transcript or 'None yet'}
+
+Detected Intent: {intent or 'unknown'}
+
+Policyholder Data:
+{member_data or 'Not yet identified'}
+
+Relevant Policy Articles:
+{_format_docs(knowledge_docs)}
+
+Active Compliance Alerts:
+{_format_alerts(compliance_alerts)}
+
+Generate the agent's suggested response:"""
+
+    response = await client.chat.completions.create(
+        model=MODEL,
+        messages=[
+            {"role": "system", "content": system_prompt},
+            {"role": "user", "content": user_prompt},
+        ],
+        temperature=0.4,
+        max_tokens=300,
+        stream=True,
+    )
+
+    async for chunk in response:
+        delta = chunk.choices[0].delta.content if chunk.choices else None
+        if delta:
+            yield delta
 # ═══════════════════════════════════════════════════════
 # POST-CALL EVALUATION — Structured Output
 # ═══════════════════════════════════════════════════════

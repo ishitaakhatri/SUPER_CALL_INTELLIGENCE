@@ -73,21 +73,3 @@ async def compliance_node(state: dict) -> dict:
     claim_type = state.get("claim_type") or state.get("intent") or ""
     alerts = get_compliance_alerts(claim_type, state["transcript"])
     return {"compliance_alerts": alerts}
-
-
-# ─────────────── SUGGESTION NODE ─────────────── #
-
-async def suggestion_node(state: dict) -> dict:
-    """
-    Generate a suggested response for the agent using the LLM.
-    Combines all gathered context into a coherent recommendation.
-    """
-    suggestion = await generate_agent_suggestion(
-        transcript=state["transcript"],
-        full_transcript=state.get("full_transcript", ""),
-        intent=state.get("intent"),
-        member_data=state.get("member_data"),
-        knowledge_docs=state.get("knowledge_docs"),
-        compliance_alerts=state.get("compliance_alerts"),
-    )
-    return {"suggestion": suggestion}
