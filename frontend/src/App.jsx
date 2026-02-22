@@ -136,9 +136,11 @@ export default function App() {
                 <main className="cards-area">
                     <SuggestionCard suggestion={suggestion} isProcessing={isProcessing} />
                     <div className="cards-scroll">
-                        <MemberCard member={memberProfile} />
+                        <div className="cards-row">
+                            <KnowledgeCard docs={knowledgeDocs} />
+                            <MemberCard member={memberProfile} />
+                        </div>
                         <ComplianceCard alerts={complianceAlerts} />
-                        <KnowledgeCard docs={knowledgeDocs} />
                     </div>
                 </main>
             )}

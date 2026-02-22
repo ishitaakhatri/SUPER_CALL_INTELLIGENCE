@@ -5,6 +5,7 @@ from typing import TypedDict, Optional
 
 class AgentState(TypedDict):
     transcript: str
+    full_transcript: str
     is_finalized: bool
 
     # Processing outputs

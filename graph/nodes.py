@@ -84,6 +84,7 @@ async def suggestion_node(state: dict) -> dict:
     """
     suggestion = await generate_agent_suggestion(
         transcript=state["transcript"],
+        full_transcript=state.get("full_transcript", ""),
         intent=state.get("intent"),
         member_data=state.get("member_data"),
         knowledge_docs=state.get("knowledge_docs"),

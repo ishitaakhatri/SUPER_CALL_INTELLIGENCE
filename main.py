@@ -200,8 +200,15 @@ async def stream_endpoint(websocket: WebSocket):
                     "data": {"message": "Analyzing transcript..."},
                 })
 
+                # Build full transcript string
+                formatted_transcript = "\\n".join(
+                    f"[{line['speaker']} {line['timestamp']}]: \\\"{line['text']}\\\""
+                    for line in call_transcript
+                )
+
                 state = {
                     "transcript": text,
+                    "full_transcript": formatted_transcript,
                     "is_finalized": True,
                     "intent": None,
                     "claim_type": None,
